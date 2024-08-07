@@ -1,0 +1,9 @@
+[submodule "/home1/04179/mshabb/GMIP/bin/pops"]
+	path = /home1/04179/mshabb/GMIP/bin/pops
+	url = https://github.com/FinucaneLab/pops.git
+[submodule "/home1/04179/mshabb/GMIP/bin/benchmarker"]
+	path = /home1/04179/mshabb/GMIP/bin/benchmarker
+	url = https://github.com/RebeccaFine/benchmarker.git
+[submodule "/home1/04179/mshabb/GMIP/bin/ldsc"]
+	path = /home1/04179/mshabb/GMIP/bin/ldsc
+	url = https://github.com/bulik/ldsc.git
