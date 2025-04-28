@@ -1,7 +1,6 @@
 # GMIP: GWAS and Multi-Omics Integration Pipeline
 
-**GMIP** is an open-source, modular framework for post-GWAS gene prioritization.  
-It integrates GWAS results with multi-omics data—such as gene expression, protein-protein interaction networks, and biological pathways—using scalable, reproducible Nextflow pipelines.
+**GMIP** is an open-source, modular framework for post-GWAS gene prioritization. It integrates GWAS results with multi-omics data—such as gene expression, protein-protein interaction networks, and biological pathways—using scalable, reproducible Nextflow pipelines.
 
 This repository provides two related components:
 
@@ -49,7 +48,6 @@ nextflow run workflows/main.nf -profile standard
 
 ### 5. Outputs
 - Re-prioritized gene lists
-- GSEA enrichment scores
 - Normalized heritability (Tau) scores
 
 ---
@@ -58,12 +56,11 @@ nextflow run workflows/main.nf -profile standard
 
 ### GMIP-PLSR Pipeline
 - Focused on handling feature multicollinearity using PLSR.
-- Uses PoPS features and scRNA-seq features for gene prioritization.
+- Uses PoPS features mainly for gene prioritization but other can also be used.
 - Validated using LOCO cross-validation and Benchmarker metrics.
 
 ### GMIP Framework
-- Explored alternative SNP2Gene mapping methods (MAGMA, VEGAS2).
-- Benchmarked multiple ML models and cross-validation strategies (noCV, k-Fold, LOCO).
+- Benchmarked multiple combinations of features, (PoPS-features, NAGA-features), ML models (NAGA, PoPS) and cross-validation strategies (noCV, k-Fold, LOCO).
 - Used to derive key insights leading to GMIP-PLSR optimization.
 
 ---
@@ -93,7 +90,7 @@ GitHub repository: [https://github.com/mohammedmsk/GMIP](https://github.com/moha
 For questions, issues, or contributions, please contact:
 
 **Mohammed Shabbir Kanchwala**  
-Email: [Insert preferred email]
+Email: mohammedmsk@gmail.com
 
 ---
 
