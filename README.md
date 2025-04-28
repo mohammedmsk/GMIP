@@ -90,7 +90,7 @@ GitHub repository: [https://github.com/mohammedmsk/GMIP](https://github.com/moha
 For questions, issues, or contributions, please contact:
 
 **Mohammed Shabbir Kanchwala**  
-Email: mohammedmsk@gmail.com
+Email: [mohammedmsk@gmail.com]
 
 ---
 
