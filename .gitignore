@@ -1,0 +1,28 @@
+# MAGMA binary — download via setup_magma.sh (not redistributable under standard copyright)
+bin/magma
+**/magma_dir/**/magma
+
+# Reference data — download via setup_references.sh (too large for git, supports S3)
+refdir/
+
+# Nextflow work directory and cache
+work/
+.nextflow/
+.nextflow.log*
+
+# Pipeline output
+outdir/
+results/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+
+# Conda environments
+*.conda_env/
+
+# OS
+.DS_Store

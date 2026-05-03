@@ -1,0 +1,43 @@
+# GMIP_ldsc benchmarker environment (Python 2.7 + LDSC + S-LDSC)
+# Build from repo root:
+#   docker build -f docker/Dockerfile.gmip_ldsc -t gmip-ldsc:latest .
+#
+# Uses continuumio/miniconda3 because micromamba solver can struggle
+# with very old Python 2.7 bioconda packages; conda classic solver handles
+# this archive reliably.
+
+FROM continuumio/miniconda3:24.1.2-0
+
+LABEL org.opencontainers.image.source="https://github.com/mohammedmsk/GMIP"
+LABEL org.opencontainers.image.description="GMIP benchmarker/LDSC environment (Python 2.7)"
+
+# Install system packages needed by pybedtools/pysam and GNU parallel
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+        zlib1g-dev \
+        libbz2-dev \
+        liblzma-dev \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        parallel \
+        procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Use classic solver — better for resolving legacy Python 2.7 packages
+RUN conda config --set solver classic
+
+COPY docker/environment_gmip_ldsc.yml /tmp/environment.yml
+RUN conda env create -f /tmp/environment.yml \
+    && conda clean --all --yes \
+    && find /opt/conda/envs/GMIP_ldsc -name "*.pyc" -delete \
+    && find /opt/conda/envs/GMIP_ldsc -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+
+ENV PATH="/opt/conda/envs/GMIP_ldsc/bin:${PATH}"
+ENV CONDA_DEFAULT_ENV=GMIP_ldsc
+ENV CONDA_PREFIX=/opt/conda/envs/GMIP_ldsc
+
+# Ensure conda env is accessible to any user (needed for Singularity/Apptainer)
+RUN chmod -R a+rX /opt/conda/envs/GMIP_ldsc
+
+WORKDIR /workspace

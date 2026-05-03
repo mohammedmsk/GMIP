@@ -1,0 +1,37 @@
+# GMIP-PLSR main pipeline environment (Python 3.12)
+# Build from repo root:
+#   docker build -f docker/Dockerfile.gmip -t gmip-plsr:latest .
+#
+# NOTE: MAGMA v1.06b binary is included. Verify MAGMA license permits
+# redistribution before pushing this image to a public registry.
+
+FROM mambaorg/micromamba:1.5.10-jammy
+
+LABEL org.opencontainers.image.source="https://github.com/mohammedmsk/GMIP"
+LABEL org.opencontainers.image.description="GMIP-PLSR main pipeline environment (Python 3.12)"
+
+USER root
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libgomp1 \
+        procps \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY docker/environment_gmip.yml /tmp/environment.yml
+RUN micromamba env create -f /tmp/environment.yml \
+    && micromamba clean --all --yes \
+    && find /opt/conda/envs/GMIP -name "*.pyc" -delete \
+    && find /opt/conda/envs/GMIP -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+
+# MAGMA v1.06b Linux x86_64 binary
+COPY gmip_plsr_pipeline/bin/magma_dir/v1.06b/magma /usr/local/bin/magma
+RUN chmod +x /usr/local/bin/magma
+
+ENV PATH="/opt/conda/envs/GMIP/bin:${PATH}"
+ENV CONDA_DEFAULT_ENV=GMIP
+ENV CONDA_PREFIX=/opt/conda/envs/GMIP
+
+# Ensure conda env is accessible to any user (needed for Singularity/Apptainer)
+RUN chmod -R a+rX /opt/conda/envs/GMIP
+
+WORKDIR /workspace

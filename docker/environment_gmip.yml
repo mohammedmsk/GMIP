@@ -1,0 +1,18 @@
+name: GMIP
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12.4
+  - numpy=1.26.2
+  - pandas=2.1.4
+  - scikit-learn=1.3.2
+  - scipy=1.11.4
+  - polars=1.5.0
+  - joblib=1.4.2
+  - pytz=2024.1
+  - python-dateutil=2.9.0
+  - six=1.16.0
+  - threadpoolctl=3.5.0
+  - packaging=24.1
+  - setuptools=70.1.0
+  - wheel=0.43.0
