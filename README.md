@@ -1,103 +1,242 @@
-# GMIP: GWAS and Multi-Omics Integration Pipeline
+# GMIP-PLSR: Post-GWAS Gene Prioritization via Multi-Omics Integration and Partial Least Squares Regression
 
-**GMIP** is an open-source, modular framework for post-GWAS gene prioritization. It integrates GWAS results with multi-omics data—such as gene expression, protein-protein interaction networks, and biological pathways—using scalable, reproducible Nextflow pipelines.
+GMIP-PLSR is a reproducible [Nextflow](https://www.nextflow.io/) pipeline for post-GWAS gene prioritization. It integrates GWAS summary statistics with multi-omics features (gene expression, protein-protein interactions, biological pathways) and applies Partial Least Squares Regression (PLSR) to handle feature multicollinearity and improve prioritization performance.
 
-This repository provides two related components:
+This repository provides two components:
 
-- **GMIP-PLSR Pipeline:**  
-  The final, recommended pipeline that uses Partial Least Squares Regression (PLSR) to handle multicollinearity and improve gene prioritization performance.
+- **`gmip_plsr_pipeline/`** — The recommended pipeline. Runs MAGMA → PoPS → GMIP-PLSR → Benchmarker.
+- **`gmip_framework/`** — The earlier benchmarking framework used to evaluate feature sets, ML models, and cross-validation strategies that informed GMIP-PLSR design.
 
-- **GMIP Framework:**  
-  A flexible, earlier framework developed to benchmark different multi-omics feature sets, machine learning models, and cross-validation strategies. Insights from this framework informed the development of GMIP-PLSR.
-
----
-
-## 📚 Repository Structure
-
-| Folder | Description |
-|:---|:---|
-| `/gmip_plsr_pipeline/` | GMIP-PLSR Pipeline (Final recommended workflow for reproducible gene prioritization). |
-| `/gmip_framework/` | Flexible GMIP Framework (Benchmarking of alternative strategies). |
-| `/bin/`, `/modules/`, `/workflows/`, `/conf/` | Nextflow scripts, modules, workflows, and configurations. |
+**Preprint:** [doi:10.64898/2026.04.06.716845](https://doi.org/10.64898/2026.04.06.716845)
 
 ---
 
-## 🚀 Quick Start (Using GMIP-PLSR Pipeline)
+## Requirements
 
-### 1. Install Nextflow
-```bash
-curl -s https://get.nextflow.io | bash
-```
+| Tool | Version | Notes |
+|------|---------|-------|
+| [Nextflow](https://nextflow.io) | ≥ 23.04 | Requires Java 11+ |
+| [Conda](https://conda.io) / [Mamba](https://github.com/mamba-org/mamba) | any | for `local` and `slurm` profiles |
+| [Docker](https://www.docker.com) | any | for `local,docker` profile |
+| [Singularity](https://sylabs.io) / [Apptainer](https://apptainer.org) | any | for `slurm` profile (default) |
+| AWS CLI | ≥ 2 | for `aws_batch` profile and S3 reference storage |
+| MAGMA | v1.06b | downloaded separately — see Setup below |
 
-### 2. Clone this repository
+---
+
+## Quick Start
+
 ```bash
+# 1. Clone
 git clone https://github.com/mohammedmsk/GMIP.git
-cd GMIP/gmip_plsr_pipeline/
+cd GMIP
+
+# 2. Download MAGMA binary (review license at https://ctg.cncr.nl/software/magma)
+bash setup_magma.sh
+
+# 3. Download reference files (~5 GB download, ~13 GB on disk)
+bash setup_references.sh
+
+# 4. Run
+nextflow run gmip_plsr_pipeline/workflows/GMIP_default_wf.nf \
+  -c gmip_plsr_pipeline/conf/nextflow.config \
+  -profile local \
+  --magma_input /path/to/gwas.magma_input.tsv \
+  --munged_gwas  /path/to/gwas.sumstats.gz \
+  --prefix        MY_GWAS
 ```
 
-### 3. Run the main pipeline
+Results are written to `results/` by default. Override with `--outdir /path/to/outdir`.
+
+---
+
+## Setup
+
+### MAGMA binary
+
+MAGMA v1.06b is required but cannot be redistributed here. Download it with:
+
 ```bash
-nextflow run workflows/main.nf -profile standard
+bash setup_magma.sh
 ```
-*(Adjust the profile according to your system: local, HPC, AWS, etc.)*
 
-### 4. Inputs Required
-- GWAS summary statistics
-- Multi-omics feature files (e.g., PoPS-derived, scRNA-seq features)
-- Configuration file (example in `/conf/`)
+This fetches the Linux x86_64 static binary from the [official MAGMA site](https://ctg.cncr.nl/software/magma) and places it at `bin/magma`. Review the MAGMA license terms before use.
 
-### 5. Outputs
-- Re-prioritized gene lists
-- Normalized heritability (Tau) scores
+### Reference files
 
----
+Reference files (~5 GB compressed, ~13 GB uncompressed) are hosted on Zenodo:
 
-## 📂 Component Details
+```bash
+# Default: extract to ./refdir/  (gitignored)
+bash setup_references.sh
 
-### GMIP-PLSR Pipeline
-- Focused on handling feature multicollinearity using PLSR.
-- Uses PoPS features mainly for gene prioritization but other can also be used.
-- Validated using LOCO cross-validation and Benchmarker metrics.
+# Custom local path
+bash setup_references.sh --refdir /data/gmip_refdir
 
-### GMIP Framework
-- Benchmarked multiple combinations of features, (PoPS-features, NAGA-features), ML models (NAGA, PoPS) and cross-validation strategies (noCV, k-Fold, LOCO).
-- Used to derive key insights leading to GMIP-PLSR optimization.
+# Upload to S3 (for AWS Batch runs)
+bash setup_references.sh --refdir s3://my-bucket/gmip_refdir --aws-region us-east-1
+```
 
----
+Reference files include:
+- 1000 Genomes Phase 3 EUR LD reference (for MAGMA)
+- Full PoPS feature matrices
+- S-LDSC baseline model, plink files, frequency files (for Benchmarker)
+- Pre-computed gene window LD score files
 
-## 📜 Citation
+### Conda environments (optional — only needed for `local` or `slurm,conda` profiles)
 
-If you use GMIP or GMIP-PLSR in your work, please cite:
+Environments are created automatically by Nextflow on first run using the YAMLs in `docker/`. To pre-build them manually:
 
-> Mohammed Shabbir Kanchwala, et al.  
-> **GMIP-PLSR: A Reproducible Nextflow Pipeline for Post-GWAS Gene Prioritization via Multi-Omics Integration and Partial Least Squares Regression** (Manuscript in preparation, 2025).
-
-GitHub repository: [https://github.com/mohammedmsk/GMIP](https://github.com/mohammedmsk/GMIP)
+```bash
+conda env create -f docker/environment_gmip.yml
+conda env create -f docker/environment_gmip_ldsc.yml
+```
 
 ---
 
-## 🛠️ Reproducibility and Environments
+## Execution Profiles
 
-- Written in **Nextflow**.
-- Compatible with local execution, HPC clusters, AWS Batch, and Azure.
-- Example configurations provided in `/conf/`.
-- Scripts and workflows use modular, reproducible design patterns.
+Select a profile with `-profile <name>`. Profiles can be combined with a comma (e.g., `-profile slurm,conda`).
+
+### Primary profiles
+
+| Profile | Executor | Environment | Typical use |
+|---------|----------|-------------|-------------|
+| `local` | local | conda | Laptop / workstation |
+| `slurm` | SLURM | Singularity | HPC cluster |
+| `aws_batch` | AWS Batch | Docker | Cloud |
+
+### Environment overrides
+
+| Profile | Effect |
+|---------|--------|
+| `conda` | Force conda (combine with `local` or `slurm`) |
+| `docker` | Force Docker (combine with `local`) |
+| `singularity` | Force Singularity (combine with `slurm`) |
+
+### AWS Batch setup
+
+1. Upload reference files to S3: `bash setup_references.sh --refdir s3://my-bucket/gmip_refdir`
+2. Set your queue in `gmip_plsr_pipeline/conf/nextflow.config` (`process.queue`) or pass `--process.queue YOUR_QUEUE`
+3. Run:
+
+```bash
+nextflow run gmip_plsr_pipeline/workflows/GMIP_default_wf.nf \
+  -c gmip_plsr_pipeline/conf/nextflow.config \
+  -profile aws_batch \
+  -work-dir s3://my-bucket/work \
+  --base_refdir  s3://my-bucket/gmip_refdir \
+  --magma_input  s3://my-bucket/gwas.magma_input.tsv \
+  --munged_gwas  s3://my-bucket/gwas.sumstats.gz \
+  --prefix        MY_GWAS
+```
 
 ---
 
-## 📬 Contact
+## Inputs
 
-For questions, issues, or contributions, please contact:
+| Parameter | Description |
+|-----------|-------------|
+| `--magma_input` | GWAS summary statistics in MAGMA input format (`.tsv`, columns: `SNP`, `CHR`, `BP`, `P`, `N`) |
+| `--munged_gwas` | Munged GWAS summary statistics for the Benchmarker (`.sumstats.gz`, LDSC format) |
+| `--prefix` | Output file prefix (e.g., trait name) |
+| `--base_refdir` | Path to reference files directory (default: `./refdir`) |
+| `--outdir` | Output directory (default: `results`) |
+| `--gmip_method` | PLSR method string (default: `PLSRegression_nc3`) |
+| `--collapse_loci` | Collapse neighbouring genes to loci before PoPS (default: `false`) |
 
-**Mohammed Shabbir Kanchwala**  
-Email: [mohammedmsk@gmail.com]
+---
+
+## Outputs
+
+```
+results/
+├── 1_magma/              MAGMA gene-level p-values and raw scores
+├── 2_pops/               PoPS per-chromosome predictions
+├── 3_gmip/               GMIP-PLSR reprioritized gene scores
+├── 4_bm_results/         Benchmarker S-LDSC normalized tau scores
+│   ├── part_1/           Per-chromosome LD score annotation files
+│   └── part_2/           Partition heritability results
+└── report.html           Nextflow execution report
+```
+
+The key output is `3_gmip/<prefix>.gmip_*.txt` — a ranked gene list with GMIP-PLSR scores.
 
 ---
 
-# ✅ Summary
+## Pipeline Overview
 
-- Main GMIP-PLSR pipeline: `/gmip_plsr_pipeline/`
-- Benchmarking GMIP Framework: `/gmip_framework/`
-- Fully reproducible, open-source, scalable pipelines for post-GWAS gene prioritization.
+```
+GWAS summary stats
+      │
+      ▼
+   MAGMA          SNP-to-gene mapping using 1000G EUR LD reference
+      │
+      ▼
+    PoPS           Per-chromosome ridge regression over multi-omics features
+      │
+      ▼
+  GMIP-PLSR        PLSR across chromosomes to handle feature multicollinearity
+      │
+      ▼
+ Benchmarker       S-LDSC partitioned heritability to evaluate reprioritization
+```
+
+### Methods
+
+- **MAGMA** ([de Leeuw et al. 2015](https://doi.org/10.1371/journal.pcbi.1004219)) maps SNPs to genes using a window-based approach with LD from 1000 Genomes Phase 3 EUR.
+- **PoPS** ([Weeks et al. 2023](https://doi.org/10.1038/s41588-023-01443-6)) scores genes by ridge regression over multi-omics features.
+- **GMIP-PLSR** applies Partial Least Squares Regression across PoPS outputs from all chromosomes, exploiting LOCO cross-validation to mitigate multicollinearity.
+- **Benchmarker** evaluates reprioritized gene lists via S-LDSC normalized tau scores.
 
 ---
+
+## Repository Structure
+
+```
+GMIP/
+├── gmip_plsr_pipeline/
+│   ├── workflows/          Main Nextflow workflow
+│   ├── modules/            Process definitions (MAGMA, PoPS, GMIP, Benchmarker)
+│   ├── subworkflows/       Benchmarker subworkflow
+│   ├── bin/                Pipeline scripts (pops.py, gmip.py, benchmarker/, ldsc/)
+│   └── conf/               Nextflow configs
+├── gmip_framework/
+│   ├── workflows/          Framework workflows (benchmarking variants)
+│   ├── modules/            Additional modules
+│   ├── bin/                Framework scripts
+│   └── conf/               Feature-wise configs (full_pops, ppi_pops, etc.)
+├── docker/
+│   ├── Dockerfile.gmip         Main pipeline Docker image (Python 3.12)
+│   ├── Dockerfile.gmip_ldsc    Benchmarker Docker image (Python 2.7 + LDSC)
+│   ├── environment_gmip.yml    Conda environment spec
+│   └── environment_gmip_ldsc.yml
+├── setup_magma.sh          Download MAGMA binary
+├── setup_references.sh     Download / upload reference files
+└── LICENSE
+```
+
+---
+
+## Citation
+
+If you use GMIP-PLSR in your work, please cite:
+
+> Kanchwala MS, et al. *GMIP-PLSR: A Reproducible Nextflow Pipeline for Post-GWAS Gene Prioritization via Multi-Omics Integration and Partial Least Squares Regression.* bioRxiv (2026). doi:[10.64898/2026.04.06.716845](https://doi.org/10.64898/2026.04.06.716845)
+
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE).
+Copyright © 2026 The University of Texas System.
+
+---
+
+## Contact
+
+Mohammed Shabbir Kanchwala
+University of Texas at Dallas
+[mohammedmsk@gmail.com](mailto:mohammedmsk@gmail.com)
+
+Issues and pull requests welcome via [GitHub](https://github.com/mohammedmsk/GMIP/issues).

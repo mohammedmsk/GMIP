@@ -1,15 +1,14 @@
 //nextflow run ~/GMIP2/workflows/2_3_preprocess_pops_wf.nf -with-conda
 
-params.base_refdir  = "/scratch/04179/mshabb/04488464786465dwkljhefkhbefjuh/refdir"
-params.conda_path   = "/work2/04179/mshabb/ls6/miniforge3/envs/"
-params.script_dir   = "/home1/04179/mshabb/GMIP2"
+params.base_refdir  = "${projectDir}/refdir"
+params.script_dir   = projectDir
 params.outdir       = "outdir"
 params.prefix       = "out"
 
 //preprocess related args
-params.feature_mat   = "/scratch/04179/mshabb/04488464786465dwkljhefkhbefjuh/refdir/2_pops_files/data_from_dropbox/ppi_pops/feature_in/ppi_only.PoPS.features.txt.gz"
-params.magma_out     = "/scratch/04179/mshabb/GMIP2/new_tests/NAFLD/GMIP/full_nextflow/outdir/1_magma/NAFLD_ppi_pops.magma.genes.out"
-params.gene_loc_file = "/scratch/04179/mshabb/GMIP2/new_tests/NAFLD/GMIP/full_nextflow/outdir/1_magma/gene_loc.txt"
+params.feature_mat   = null
+params.magma_out     = null
+params.gene_loc_file = null
 params.pval_column   = "P"
 params.threshold     = "5e-8"
 params.chrom_column  = "CHR"
@@ -18,7 +17,7 @@ params.y_id_col      = "GENE"
 params.folds         = "3"
 
 //pops related args
-params.gene_annot_path         = "${params.script_dir}/bin/pops/example/data/utils/gene_annot_jun10.txt"
+params.gene_annot_path         = "${projectDir}/bin/pops/example/data/utils/gene_annot_jun10.txt"
 params.feature_mat_pathdir     = "${params.base_refdir}/2_pops_files/data_from_dropbox/ppi_pops/ppi_pops_features_munged"
 params.feature_mat_prefix      = "pops_features"
 params.control_features_path   = "${params.base_refdir}/2_pops_files/data_from_dropbox/ppi_pops/control.features"
