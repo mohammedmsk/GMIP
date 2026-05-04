@@ -8,6 +8,7 @@ This repository provides two components:
 - **`gmip_framework/`** — The earlier benchmarking framework used to evaluate feature sets, ML models, and cross-validation strategies that informed GMIP-PLSR design.
 
 **Preprint:** [doi:10.64898/2026.04.06.716845](https://doi.org/10.64898/2026.04.06.716845)
+**Reference data:** [doi:10.5281/zenodo.19986368](https://doi.org/10.5281/zenodo.19986368)
 
 ---
 

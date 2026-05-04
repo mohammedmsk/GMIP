@@ -31,8 +31,8 @@ DEFAULT_REFDIR="${REPO_ROOT}/refdir"
 REFDIR="${DEFAULT_REFDIR}"
 AWS_REGION="us-east-1"
 
-# Zenodo record — update this URL after uploading the reference archive
-ZENODO_URL="https://zenodo.org/records/XXXXXXX/files/gmip_refdir.zip"
+# Zenodo record — doi:10.5281/zenodo.19986368
+ZENODO_URL="https://zenodo.org/records/19986368/files/refdir_v1.zip"
 ZENODO_MD5=""   # optional: set to expected md5 for verification
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
@@ -68,14 +68,6 @@ else
     echo "Delete it or choose a different --refdir to re-download."
     exit 0
   fi
-fi
-
-# Check Zenodo URL is set
-if [[ "${ZENODO_URL}" == *"XXXXXXX"* ]]; then
-  echo "ERROR: Zenodo record URL not yet set in this script." >&2
-  echo "       Please see: https://zenodo.org/records/XXXXXXX" >&2
-  echo "       Or contact the authors for access to the reference files." >&2
-  exit 1
 fi
 
 # ── Download ──────────────────────────────────────────────────────────────────
